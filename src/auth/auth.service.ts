@@ -17,7 +17,7 @@ export class AuthService {
   async createUserWithFirebase(data: { uid: string; email: string; name: string }) {
     // Kiểm tra xem user đã tồn tại trong MongoDB
 
-    let user = await this.userModel.findOne({ uid: data.uid });
+    let user = await this.userModel.findOne({ uid: data.uid }).populate('role', 'name');
     if (!user) {
       const defaultRole = await this.roleModel.findOne({ name: 'user' });
       // Nếu chưa tồn tại, tạo user mới
@@ -30,6 +30,9 @@ export class AuthService {
 
       // Lưu user mới vào database
       await user.save();
+      
+      // Populate role sau khi save
+      user = await this.userModel.findById(user._id).populate('role', 'name').exec();
     }
 
     const payload = { uid: user.uid, email: user.email };
@@ -39,7 +42,7 @@ export class AuthService {
 
   async login(email: string, password: string) {
     try {
-      const user = await this.userModel.findOne({ email });
+      const user = await this.userModel.findOne({ email }).populate('role', 'name');
 
       if (!user) {
         throw new NotFoundException('Người dùng không tồn tại');
@@ -61,31 +64,27 @@ export class AuthService {
     }
   }
 
-  async createUserWithForm(data: { name: string; email: string; password: string }) {
-    // Kiểm tra xem email đã được sử dụng chưa
-    try {
-      const existingUser = await this.userModel.findOne({ email: data.email });
-      if (existingUser) {
-        // throw new Error('Email is already in use');
-        throw new UnauthorizedException('Email is already in use');
-      }
-
-      // Nếu là user đầu tiên thì gán role admin
-    const userCount = await this.userModel.countDocuments();
-    console.log('userCount', userCount);
-    const roleName = userCount === 0 ? 'admin' : 'user';
-    console.log('roleName', roleName);
-    const role = await this.roleModel.findOne({ name: roleName });
-      // Tạo user mới
-      console.log('role', role?._id);
-      const newUser = new this.userModel({
-        ...data,
-        role: role?._id, // ✅ gán roleId
-      });
-      return newUser.save();
-    } catch (error) {
+  async createUserWithForm(data: { name: string; email: string; password: string; securityConfirmed?: boolean }) {
+    const existingUser = await this.userModel.findOne({ email: data.email });
+    if (existingUser) {
       throw new UnauthorizedException('Email already in use');
     }
+    if (!data.securityConfirmed) {
+      throw new UnauthorizedException('not securityConfirmed');
+    }
+
+    const userCount = await this.userModel.countDocuments();
+    const roleName = userCount === 0 ? 'admin' : 'user';
+    const role = await this.roleModel.findOne({ name: roleName });
+
+    const newUser = new this.userModel({
+      name: data.name,
+      email: data.email,
+      password: data.password,
+      securityConfirmed: data.securityConfirmed,
+      role: role?._id,
+    });
+    return newUser.save();
   }
 
   async generateUserTokens(payload) {

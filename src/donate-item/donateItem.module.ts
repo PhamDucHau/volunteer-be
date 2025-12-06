@@ -8,6 +8,7 @@ import { DonateItem, DonateItemSchema } from './schemas/donation-item.schema';
 import { DonateItemController } from './donateItem.controller';
 import { DonateItemService } from './donateItem.service';
 import { AuthModule } from 'src/auth/auth.module';
+import { TrackingModule } from 'src/tracking/tracking.module';
 
 @Module({
 
@@ -21,7 +22,8 @@ import { AuthModule } from 'src/auth/auth.module';
 
     ]),
     HttpModule,
-    AuthModule
+    AuthModule,
+    TrackingModule
   ],
   controllers: [DonateItemController],
   providers: [DonateItemService]

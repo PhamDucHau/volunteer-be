@@ -12,6 +12,8 @@ import { FriendModule } from './auth/socket/friend.module';
 import { MinioModule } from './minio/minio.module';
 import { DepartmentModule } from './department/department.module';
 import { DonateItemModule } from './donate-item/donateItem.module';
+import { ReportModule } from './report/report.module';
+import { TrackingModule } from './tracking/tracking.module';
 
 @Module({
   imports: [
@@ -36,7 +38,9 @@ import { DonateItemModule } from './donate-item/donateItem.module';
     CardModule,
     DepartmentModule,
     MinioModule,
-    DonateItemModule
+    DonateItemModule,
+    ReportModule,
+    TrackingModule
   ],
   controllers: [AppController],
   providers: [AppService],

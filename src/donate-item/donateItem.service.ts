@@ -10,6 +10,7 @@ import { ItemCategory } from './schemas/item-category.schema';
 import { ItemStatus } from './schemas/item-status.schema';
 import { Status } from './schemas/status.schema';
 import { User } from 'src/auth/schemas/user.schema';
+import { TrackingService } from 'src/tracking/tracking.service';
 
 
 @Injectable()
@@ -25,7 +26,7 @@ export class DonateItemService {
     @InjectModel(Status.name)
     private readonly statusModel: Model<Status>,
     @InjectModel(User.name) private userModel: Model<User>,
-
+    private trackingService: TrackingService,
     private jwtService: JwtService,) { }
 
 
@@ -58,6 +59,22 @@ export class DonateItemService {
       });
 
       const savedItem = await newItem.save();
+
+      // 📝 Tạo tracking record để lưu lịch sử
+      try {
+        await this.trackingService.create(
+          savedItem._id.toString(),
+          user._id.toString(),
+          'created',
+          {
+            itemName: savedItem.itemName,
+            quantity: savedItem.quantity,
+          },
+        );
+      } catch (trackingError) {
+        console.error('❌ Error creating tracking:', trackingError);
+        // Không throw error để không ảnh hưởng đến việc tạo donate item
+      }
 
       // populate để trả về thông tin chi tiết
       return this.donateItemModel
@@ -157,12 +174,11 @@ export class DonateItemService {
         throw new BadRequestException('Bạn không thể nhận vật phẩm của chính mình');
       }
 
-      const COMPLETE_STATUS_ID = '690e55cca230c15861dcdd23';
+
       const updateData: any = {
-        status: new Types.ObjectId(COMPLETE_STATUS_ID),
         receiver: user._id.toString(),
       };
-
+      updateData.status = '690e55cca230c15861dcdd22'
       if (body.receiverInfo) updateData.receiverInfo = body.receiverInfo;
       if (body.itemStatus) updateData.itemStatus = new Types.ObjectId(body.itemStatus);
 

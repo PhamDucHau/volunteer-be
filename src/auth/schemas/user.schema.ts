@@ -20,6 +20,8 @@ export class User extends Document {
   @Prop({ type: Types.ObjectId, ref: Role.name }) // ✅ thêm dòng này
   role: Role;
 
+  @Prop({ default: false })
+  securityConfirmed: boolean;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
