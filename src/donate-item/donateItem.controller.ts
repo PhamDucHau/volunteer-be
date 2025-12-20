@@ -62,23 +62,6 @@ async completeDonation(@Param('id') id: string, @Req() req, @Body() body: any) {
 
 
 
-  @Get('/list/campaigns')
-  async getAllCampaigns() {
-    return this.donateItemService.findAllCampaigns();
-  }
-
-  // 🧩 GET all item categories
-  @Get('/list/categories')
-  async getAllCategories() {
-    return this.donateItemService.findAllCategories();
-  }
-
-  // 🧩 GET all item statuses
-  @Get('/list/item-status')
-  async getAllItemStatuses() {
-    return this.donateItemService.findAllItemStatuses();
-  }
-
   // 🧩 GET all status (chung)
   @Get('/list/status')
   async getAllStatus() {

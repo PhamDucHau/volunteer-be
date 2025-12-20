@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Report } from './schemas/report.schema';
@@ -47,6 +47,14 @@ export class ReportService {
 
   async findAll() {
     return this.reportModel.find().sort({ createdAt: -1 }).exec();
+  }
+
+  async findById(id: string) {
+    const report = await this.reportModel.findById(id).exec();
+    if (!report) {
+      throw new NotFoundException(`Không tìm thấy báo cáo với ID: ${id}`);
+    }
+    return report;
   }
 }
 

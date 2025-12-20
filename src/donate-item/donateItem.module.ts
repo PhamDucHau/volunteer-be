@@ -9,16 +9,19 @@ import { DonateItemController } from './donateItem.controller';
 import { DonateItemService } from './donateItem.service';
 import { AuthModule } from 'src/auth/auth.module';
 import { TrackingModule } from 'src/tracking/tracking.module';
+import { ItemCategory, ItemCategorySchema } from '../item-category/schemas/item-category.schema';
+import { DonationCampaign, DonationCampaignSchema } from '../donation-campaign/schemas/donation-campaign.schema';
+import { ItemStatus, ItemStatusSchema } from '../item-status/schemas/item-status.schema';
 
 @Module({
 
   imports: [
     MongooseModule.forFeature([
       { name: DonateItem.name, schema: DonateItemSchema },
-      { name: 'ItemCategory', schema: DonateItemSchema },
+      { name: ItemCategory.name, schema: ItemCategorySchema },
+      { name: DonationCampaign.name, schema: DonationCampaignSchema },
+      { name: ItemStatus.name, schema: ItemStatusSchema },
       { name: 'Status', schema: DonateItemSchema },
-      { name: 'ItemStatus', schema: DonateItemSchema },
-      { name: 'DonationCampaign', schema: DonateItemSchema },
 
     ]),
     HttpModule,

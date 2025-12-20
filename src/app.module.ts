@@ -14,6 +14,9 @@ import { DepartmentModule } from './department/department.module';
 import { DonateItemModule } from './donate-item/donateItem.module';
 import { ReportModule } from './report/report.module';
 import { TrackingModule } from './tracking/tracking.module';
+import { ItemCategoryModule } from './item-category/item-category.module';
+import { DonationCampaignModule } from './donation-campaign/donation-campaign.module';
+import { ItemStatusModule } from './item-status/item-status.module';
 
 @Module({
   imports: [
@@ -24,7 +27,7 @@ import { TrackingModule } from './tracking/tracking.module';
       cache: true,
       load: [config]
     }),
-    MongooseModule.forRoot('mongodb://admin:admin123@61.28.236.228:27017/Volunteer?authSource=admin'),
+    MongooseModule.forRoot('mongodb://admin:admin123@72.60.111.34:27017/Volunteer?authSource=admin'),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (config) => ({
@@ -40,7 +43,10 @@ import { TrackingModule } from './tracking/tracking.module';
     MinioModule,
     DonateItemModule,
     ReportModule,
-    TrackingModule
+    TrackingModule,
+    ItemCategoryModule,
+    DonationCampaignModule,
+    ItemStatusModule
   ],
   controllers: [AppController],
   providers: [AppService],

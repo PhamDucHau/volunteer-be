@@ -2,9 +2,9 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { User } from '../../auth/schemas/user.schema';
 import { Status } from './status.schema';
-import { ItemCategory } from './item-category.schema';
-import { DonationCampaign } from './donation-campaign.schema';
-import { ItemStatus } from './item-status.schema';
+import { ItemCategory } from '../../item-category/schemas/item-category.schema';
+import { DonationCampaign } from '../../donation-campaign/schemas/donation-campaign.schema';
+import { ItemStatus } from '../../item-status/schemas/item-status.schema';
 
 
 

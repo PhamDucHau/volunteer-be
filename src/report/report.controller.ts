@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
 } from '@nestjs/common';
 import { ReportService } from './report.service';
@@ -19,6 +20,11 @@ export class ReportController {
   @Get()
   async getReports() {
     return this.reportService.findAll();
+  }
+
+  @Get(':id')
+  async getReportById(@Param('id') id: string) {
+    return this.reportService.findById(id);
   }
 }
 

@@ -5,9 +5,9 @@ import mongoose, { Model, Types } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 import axios from "axios";
 import { DonateItem } from './schemas/donation-item.schema';
-import { DonationCampaign } from './schemas/donation-campaign.schema';
-import { ItemCategory } from './schemas/item-category.schema';
-import { ItemStatus } from './schemas/item-status.schema';
+import { DonationCampaign } from '../donation-campaign/schemas/donation-campaign.schema';
+import { ItemCategory } from '../item-category/schemas/item-category.schema';
+import { ItemStatus } from '../item-status/schemas/item-status.schema';
 import { Status } from './schemas/status.schema';
 import { User } from 'src/auth/schemas/user.schema';
 import { TrackingService } from 'src/tracking/tracking.service';
@@ -40,7 +40,9 @@ export class DonateItemService {
         throw new NotFoundException(`Không tìm thấy user với email: ${email}`);
       }
       // ⚙️ 2️⃣ Gắn mặc định status = "Đăng ký cho"
-      const defaultStatusId = '690e55cca230c15861dcdd21';
+      // const defaultStatusId = '690e55cca230c15861dcdd21';
+      const defaultStatusId = '6944451e7fe786abf5ec2279';
+      
 
     try {
       const newItem = new this.donateItemModel({
@@ -178,7 +180,7 @@ export class DonateItemService {
       const updateData: any = {
         receiver: user._id.toString(),
       };
-      updateData.status = '690e55cca230c15861dcdd22'
+      updateData.status = '694445947fe786abf5ec227b'
       if (body.receiverInfo) updateData.receiverInfo = body.receiverInfo;
       if (body.itemStatus) updateData.itemStatus = new Types.ObjectId(body.itemStatus);
 
@@ -270,21 +272,6 @@ export class DonateItemService {
 
 
 
-
-// 🧩 GET all donation campaigns
-async findAllCampaigns() {
-  return this.donationCampaignModel.find();
-}
-
-// 🧩 GET all item categories
-async findAllCategories() {
-  return this.itemCategoryModel.find();
-}
-
-// 🧩 GET all item statuses
-async findAllItemStatuses() {
-  return this.itemStatusModel.find();
-}
 
 // 🧩 GET all status chung
 async findAllStatus() {
