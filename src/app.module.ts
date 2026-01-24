@@ -20,6 +20,7 @@ import { ItemStatusModule } from './item-status/item-status.module';
 import { UserModule } from './user/user.module';
 import { GalleryCategoryModule } from './gallery-category/gallery-category.module';
 import { GalleryModule } from './gallery/gallery.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -52,7 +53,8 @@ import { GalleryModule } from './gallery/gallery.module';
     ItemStatusModule,
     UserModule,
     GalleryCategoryModule,
-    GalleryModule
+    GalleryModule,
+    EmailModule
   ],
   controllers: [AppController],
   providers: [AppService],
