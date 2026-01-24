@@ -58,6 +58,7 @@ export class DonateItemService {
         senderInfo: data.senderInfo,
         receiverInfo: data.receiverInfo,
         itemImages: data.itemImages,
+        lastReceiveDate: data.lastReceiveDate ? new Date(data.lastReceiveDate) : undefined,
       });
 
       const savedItem = await newItem.save();
@@ -115,6 +116,72 @@ export class DonateItemService {
       .populate('itemStatus', 'name')
       .sort({ createdAt: -1 })
       .exec();
+  }
+
+  // 🟢 Lấy danh sách công khai (không cần token) với phân trang
+  async findAllPublic(query: { page?: string; limit?: string; itemCategory?: string }) {
+    const isGetAll = query.page === 'all';
+    const page = isGetAll ? 1 : parseInt(query.page) || 1;
+    const limit = isGetAll ? Number.MAX_SAFE_INTEGER : parseInt(query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // Tạo filter
+    const filter: any = {};
+    if (query.itemCategory) {
+      filter.itemCategory = query.itemCategory;
+    }
+
+    // Nếu page=all, lấy tất cả không phân trang
+    if (isGetAll) {
+      const data = await this.donateItemModel
+        .find(filter)
+        .populate('itemCategory', 'name description')
+        .populate('donationCampaign', 'name')
+        .populate('status', 'name')
+        .populate('itemStatus', 'name')
+        .sort({ createdAt: -1 })
+        .exec();
+
+      return {
+        data,
+        pagination: {
+          total: data.length,
+          page: 1,
+          limit: data.length,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      };
+    }
+
+    // Có phân trang
+    const total = await this.donateItemModel.countDocuments(filter);
+
+    const data = await this.donateItemModel
+      .find(filter)
+      .populate('itemCategory', 'name description')
+      .populate('donationCampaign', 'name')
+      .populate('status', 'name')
+      .populate('itemStatus', 'name')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .exec();
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    };
   }
 
   // 🟡 UPDATE (dùng lại cho POST /update/:id)

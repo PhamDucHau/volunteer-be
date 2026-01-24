@@ -30,6 +30,12 @@ export class DonationCampaignController {
     return this.donationCampaignService.findAll(query);
   }
 
+  // 🟢 GET all active donation campaigns (isActive: true)
+  @Get('/active')
+  async getActiveCampaigns() {
+    return this.donationCampaignService.findAllActive();
+  }
+
   // 🟢 POST - Tạo mới campaign
   @Post()
   async createCampaign(

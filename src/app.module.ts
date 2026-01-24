@@ -17,6 +17,9 @@ import { TrackingModule } from './tracking/tracking.module';
 import { ItemCategoryModule } from './item-category/item-category.module';
 import { DonationCampaignModule } from './donation-campaign/donation-campaign.module';
 import { ItemStatusModule } from './item-status/item-status.module';
+import { UserModule } from './user/user.module';
+import { GalleryCategoryModule } from './gallery-category/gallery-category.module';
+import { GalleryModule } from './gallery/gallery.module';
 
 @Module({
   imports: [
@@ -27,7 +30,7 @@ import { ItemStatusModule } from './item-status/item-status.module';
       cache: true,
       load: [config]
     }),
-    MongooseModule.forRoot('mongodb://admin:admin123@72.60.111.34:27017/Volunteer?authSource=admin'),
+    MongooseModule.forRoot('mongodb://admin:admin123@72.61.125.140:27017/Volunteer?authSource=admin'),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (config) => ({
@@ -46,7 +49,10 @@ import { ItemStatusModule } from './item-status/item-status.module';
     TrackingModule,
     ItemCategoryModule,
     DonationCampaignModule,
-    ItemStatusModule
+    ItemStatusModule,
+    UserModule,
+    GalleryCategoryModule,
+    GalleryModule
   ],
   controllers: [AppController],
   providers: [AppService],

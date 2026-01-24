@@ -29,6 +29,20 @@ export class DonationCampaignService {
     private readonly donationCampaignModel: Model<DonationCampaign>,
   ) {}
 
+  // 🟢 Lấy tất cả campaigns đang hoạt động (isActive: true và deleted: false)
+  async findAllActive() {
+    const filter = { isActive: true, deleted: false };
+    const data = await this.donationCampaignModel
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .exec();
+
+    return {
+      data,
+      total: data.length,
+    };
+  }
+
   // 🟢 Lấy tất cả campaigns (chỉ những campaign chưa bị xóa) với phân trang và search
   async findAll(query: { page?: string; limit?: string; search?: string }) {
     const isGetAll = query.page === 'all';

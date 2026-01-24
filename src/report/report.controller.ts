@@ -22,6 +22,16 @@ export class ReportController {
     return this.reportService.findAll();
   }
 
+  @Get('summary/stats')
+  async getSummary() {
+    return this.reportService.getSummary();
+  }
+
+  @Get('charts/status-trend')
+  async getStatusTrend() {
+    return this.reportService.getStatusTrend30Days();
+  }
+
   @Get(':id')
   async getReportById(@Param('id') id: string) {
     return this.reportService.findById(id);

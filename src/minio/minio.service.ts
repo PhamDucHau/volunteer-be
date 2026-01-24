@@ -8,7 +8,7 @@ export class MinioService {
 
   constructor() {
     this.s3 = new AWS.S3({
-      endpoint: 'http://72.60.111.34:9000', // Địa chỉ MinIO
+      endpoint: 'http://72.61.125.140:9002', // Địa chỉ MinIO
       accessKeyId: 'admin', // Khóa truy cập
       secretAccessKey: 'password123', // Khóa bí mật
       s3ForcePathStyle: true, // MinIO yêu cầu cấu hình này
