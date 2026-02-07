@@ -21,6 +21,7 @@ import { UserModule } from './user/user.module';
 import { GalleryCategoryModule } from './gallery-category/gallery-category.module';
 import { GalleryModule } from './gallery/gallery.module';
 import { EmailModule } from './email/email.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -54,7 +55,8 @@ import { EmailModule } from './email/email.module';
     UserModule,
     GalleryCategoryModule,
     GalleryModule,
-    EmailModule
+    EmailModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

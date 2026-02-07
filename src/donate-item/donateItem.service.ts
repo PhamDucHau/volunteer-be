@@ -11,6 +11,7 @@ import { ItemStatus } from '../item-status/schemas/item-status.schema';
 import { Status } from './schemas/status.schema';
 import { User } from 'src/auth/schemas/user.schema';
 import { TrackingService } from 'src/tracking/tracking.service';
+import { EmailService } from '../email/email.service';
 
 
 @Injectable()
@@ -27,7 +28,9 @@ export class DonateItemService {
     private readonly statusModel: Model<Status>,
     @InjectModel(User.name) private userModel: Model<User>,
     private trackingService: TrackingService,
-    private jwtService: JwtService,) { }
+    private jwtService: JwtService,
+    private emailService: EmailService,
+  ) {}
 
 
      // 🟢 Tạo mới donate item
@@ -213,7 +216,7 @@ export class DonateItemService {
       }
 
       // ✅ Populate đầy đủ thông tin trả về
-      return this.donateItemModel
+      const populated = await this.donateItemModel
         .findById(updated._id)
         .populate('sender', 'name email')
         .populate('receiver', 'name email')
@@ -222,6 +225,14 @@ export class DonateItemService {
         .populate('status', 'name')
         .populate('itemStatus', 'name')
         .exec();
+
+      // Gửi email thông báo theo bảng workflow khi đổi status
+      if (populated && updateData.status)
+        this.sendStatusChangeNotifications(populated).catch((err) =>
+          console.error('❌ Email notification error:', err),
+        );
+
+      return populated;
     } catch (error) {
       console.error('❌ Error updating donate item:', error);
       throw new Error('Cập nhật vật phẩm thất bại');
@@ -256,7 +267,7 @@ export class DonateItemService {
       const updated = await this.donateItemModel.findByIdAndUpdate(id, updateData, { new: true });
       if (!updated) throw new NotFoundException('Không tìm thấy vật phẩm để cập nhật');
 
-      return this.donateItemModel
+      const populated = await this.donateItemModel
         .findById(updated._id)
         .populate('sender', 'name email')
         .populate('receiver', 'name email')
@@ -265,6 +276,14 @@ export class DonateItemService {
         .populate('status', 'name')
         .populate('itemStatus', 'name')
         .exec();
+
+      // Noti người cho (1): Đợi người cho đồng ý
+      if (populated)
+        this.sendStatusChangeNotifications(populated).catch((err) =>
+          console.error('❌ Email notification error:', err),
+        );
+
+      return populated;
     } catch (error) {
       console.error('❌ Error completing donation:', error.message);
       console.error('🔥 Stack:', error.stack);
@@ -343,6 +362,106 @@ export class DonateItemService {
 // 🧩 GET all status chung
 async findAllStatus() {
   return this.statusModel.find();
+}
+
+/**
+ * Gửi email thông báo theo bảng workflow (Noti người cho / Noti người nhận) khi đổi status.
+ * Gọi sau khi update/completeDonation, item phải đã populate sender, receiver, status.
+ */
+private async sendStatusChangeNotifications(item: any): Promise<void> {
+  const statusName =
+    typeof item.status?.name === 'string'
+      ? item.status.name
+      : (item.status as any)?.name ?? '';
+  const sender = item.sender as any;
+  const receiver = item.receiver as any;
+  const senderEmail = sender?.email;
+  const senderName = sender?.name ?? 'Bạn';
+  const receiverEmail = receiver?.email;
+  const receiverName = receiver?.name ?? 'Bạn';
+  const itemName = item.itemName ?? 'Vật phẩm';
+  const n = (s: string) => (s || '').toLowerCase().trim();
+
+  if (!statusName) return;
+
+  // Hủy → Noti người cho (0) + Noti người nhận (0)
+  if (n(statusName).includes('hủy')) {
+    if (senderEmail)
+      await this.emailService.sendItemStatusNotification(
+        senderEmail,
+        senderName,
+        itemName,
+        statusName,
+        0,
+      );
+    if (receiverEmail)
+      await this.emailService.sendItemStatusNotification(
+        receiverEmail,
+        receiverName,
+        itemName,
+        statusName,
+        0,
+      );
+    return;
+  }
+
+  // Đợi người cho đồng ý → Noti người cho (1)
+  if (n(statusName).includes('đợi người cho đồng ý')) {
+    if (senderEmail)
+      await this.emailService.sendItemStatusNotification(
+        senderEmail,
+        senderName,
+        itemName,
+        statusName,
+        1,
+      );
+    return;
+  }
+
+  // Đang đợi shipper / bên vận chuyển → Noti người cho (2)
+  if (
+    n(statusName).includes('đợi shipper') ||
+    n(statusName).includes('đang đợi shipper') ||
+    (n(statusName).includes('vận chuyển') && n(statusName).includes('đợi'))
+  ) {
+    if (senderEmail)
+      await this.emailService.sendItemStatusNotification(
+        senderEmail,
+        senderName,
+        itemName,
+        statusName,
+        2,
+      );
+    return;
+  }
+
+  // Shipper đang chuyển đến người nhận → Noti người nhận (3)
+  if (
+    n(statusName).includes('chuyển đến người nhận') ||
+    n(statusName).includes('shipper đang chuyển')
+  ) {
+    if (receiverEmail)
+      await this.emailService.sendItemStatusNotification(
+        receiverEmail,
+        receiverName,
+        itemName,
+        statusName,
+        3,
+      );
+    return;
+  }
+
+  // Hoàn thành → Noti người cho (4)
+  if (n(statusName).includes('hoàn thành')) {
+    if (senderEmail)
+      await this.emailService.sendItemStatusNotification(
+        senderEmail,
+        senderName,
+        itemName,
+        statusName,
+        4,
+      );
+  }
 }
 
 

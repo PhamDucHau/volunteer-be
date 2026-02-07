@@ -61,10 +61,11 @@ export class EmailService {
         auth: {
           type: 'OAuth2',
           user: user,
-          clientId: clientId,
-          clientSecret: clientSecret,
-          refreshToken: refreshToken,
-          accessToken: accessToken.token,
+          pass: process.env.GMAIL_APP_PASSWORD,
+          // clientId: clientId,
+          // clientSecret: clientSecret,
+          // refreshToken: refreshToken,
+          // accessToken: accessToken.token,
         },
       } as nodemailer.TransportOptions);
 
@@ -176,6 +177,106 @@ export class EmailService {
     return this.sendEmail({
       to,
       subject: 'Donation Confirmation - Thank You!',
+      html,
+    });
+  }
+
+  /**
+   * Gửi thông báo trạng thái vật phẩm theo bảng workflow (Noti người cho / Noti người nhận).
+   * type 0: Hủy (gửi cả người cho + người nhận)
+   * type 1: Đợi người cho đồng ý → người cho
+   * type 2: Đang đợi shipper → người cho
+   * type 3: Shipper đang chuyển đến người nhận → người nhận
+   * type 4: Hoàn thành → người cho
+   */
+  async sendItemStatusNotification(
+    to: string,
+    userName: string,
+    itemName: string,
+    statusName: string,
+    notificationType: 0 | 1 | 2 | 3 | 4,
+  ) {
+    const baseStyle =
+      'font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;';
+    const boxStyle =
+      'background-color: #f5f5f5; padding: 16px; border-radius: 8px; margin: 16px 0;';
+
+    const DASHBOARD_HISTORY_URL = 'https://seyeuthuong.org/page-dashboard/my-history';
+
+    const templates: Record<
+      number,
+      {
+        subject: string;
+        title: string;
+        message: string;
+        color: string;
+        actionUrl?: string;
+        actionLabel?: string;
+      }
+    > = {
+      0: {
+        subject: 'Thông báo hủy đơn / Cập nhật trạng thái vật phẩm',
+        title: 'Đơn đã được hủy',
+        message: `Đơn hàng "<strong>${itemName}</strong>" đã được hủy. Trạng thái: ${statusName}.`,
+        color: '#9E9E9E',
+      },
+      1: {
+        subject: 'Có người muốn nhận vật phẩm – Cần bạn đồng ý',
+        title: 'Đợi người cho đồng ý',
+        message: `Có người nhận đã xác nhận muốn nhận vật phẩm "<strong>${itemName}</strong>". Vui lòng vào hệ thống để đồng ý hoặc từ chối.`,
+        color: '#FF9800',
+        actionUrl: DASHBOARD_HISTORY_URL,
+        actionLabel: 'Vào Hệ thống để đồng ý',
+      },
+      2: {
+        subject: 'Vật phẩm đang chờ bên vận chuyển',
+        title: 'Đang đợi shipper / bên vận chuyển',
+        message: `Vật phẩm "<strong>${itemName}</strong>" đã được chuyển sang trạng thái chờ bên vận chuyển. Bạn sẽ được thông báo khi đơn được giao.`,
+        color: '#2196F3',
+      },
+      3: {
+        subject: 'Vật phẩm đang được giao đến bạn',
+        title: 'Shipper đang chuyển đến người nhận',
+        message: `Vật phẩm "<strong>${itemName}</strong>" đang được vận chuyển đến bạn. Trạng thái: ${statusName}.`,
+        color: '#2196F3',
+      },
+      4: {
+        subject: 'Đơn hàng đã hoàn thành',
+        title: 'Hoàn thành',
+        message: `Đơn hàng "<strong>${itemName}</strong>" đã hoàn thành. Cảm ơn bạn đã tham gia.`,
+        color: '#4CAF50',
+      },
+    };
+
+    const t = templates[notificationType];
+    if (!t) return;
+
+    const actionButton =
+      t.actionUrl && t.actionLabel
+        ? `
+        <div style="text-align: center; margin: 24px 0;">
+          <a href="${t.actionUrl}" style="background-color: ${t.color}; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">${t.actionLabel}</a>
+        </div>
+        `
+        : '';
+
+    const html = `
+      <div style="${baseStyle}">
+        <h2 style="color: ${t.color};">${t.title}</h2>
+        <p>Xin chào ${userName},</p>
+        <div style="${boxStyle}">
+          ${t.message}
+        </div>
+        ${actionButton}
+        <p>Trạng thái hiện tại: <strong>${statusName}</strong>.</p>
+        <br>
+        <p>Trân trọng,<br><strong>Hệ thống Tình nguyện</strong></p>
+      </div>
+    `;
+
+    return this.sendEmail({
+      to,
+      subject: t.subject,
       html,
     });
   }

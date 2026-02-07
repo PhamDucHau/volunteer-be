@@ -13,6 +13,9 @@ RUN yarn install
 # Copy toàn bộ code của ứng dụng vào container
 COPY . .
 
+# Tăng heap memory limit cho Node.js để tránh lỗi out of memory khi build
+ENV NODE_OPTIONS=--max-old-space-size=4096
+
 # Build ứng dụng NestJS
 RUN yarn run build
 
